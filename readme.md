@@ -12,8 +12,12 @@ CellRex is built as a multipage app with three main pages:
 
 1. **Upload**: This page allows you to upload data files by dragging and dropping them into a dedicated upload folder on your filesystem or your NAS and filling out a form with relevant information. The **template and check features** streamline the upload process, ensuring consistency and accuracy in the information provided.
 
+https://github.com/cellrex/cellrex/assets/163431168/1f9fd925-8441-480b-8661-2b4070f53fbd
+
 
 2. **Search**: This page provides a search mask that you can use to specify search criteria and easily find data files.
+
+https://github.com/cellrex/cellrex/assets/163431168/2addf28a-d053-48f5-9b07-4b4f13b022b0
 
 
 3. **Dashboard**: This page provides insights about your data and helps you manage and organize your data efficiently.
@@ -27,8 +31,6 @@ Follow these steps to get started with CellRex:
 LOCAL_DATA_PATH = Path to your local or network storage where the upload folder should reside
 
 LOCAL_DATA_PATH_SQLITE = Path to the folder where the .sqlite-File will reside
-
-DATABASE_BACKEND = Either "sqlite" or "monogdb"
 ```
 
 2. Build and start the container via docker-compose
