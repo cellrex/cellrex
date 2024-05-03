@@ -1,0 +1,11 @@
+[server]
+port = 8501
+folderWatchBlacklist = ['/data']
+maxUploadSize = 20
+enableStaticServing = true
+
+[browser]
+gatherUsageStats = false
+
+[client]
+showErrorDetails = true

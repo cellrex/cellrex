@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="63.546001mm"
+   height="12.746147mm"
+   viewBox="0 0 63.546001 12.746147"
+   version="1.1"
+   id="svg5"
+   inkscape:export-filename="CellRex_Swoosh.png"
+   inkscape:export-xdpi="300"
+   inkscape:export-ydpi="300"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-63.19676,-116.61666)">
+    <text
+       xml:space="preserve"
+       style="font-weight:600;font-size:16.9333px;font-family:'Victor Mono';-inkscape-font-specification:'Victor Mono Semi-Bold';text-align:center;text-anchor:middle;fill:#2d2d2d;stroke-width:0.396875;stroke-linecap:square;stroke-linejoin:round;paint-order:stroke markers fill"
+       x="94.877396"
+       y="129.14729"
+       id="text236"><tspan
+         sodipodi:role="line"
+         id="tspan234"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Victor Mono';-inkscape-font-specification:'Victor Mono Bold';stroke-width:0.396875"
+         x="94.877396"
+         y="129.14729">CellRex</tspan></text>
+  </g>
+</svg>

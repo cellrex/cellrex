@@ -1,0 +1,66 @@
+{
+    "species": "Human",
+    "origin": "Primary",
+    "organType": "Cardio",
+    "cellType": "Cardiospheres",
+    "protocolNames": [],
+    "cellID": "900090",
+    "keywords": [
+        "mea",
+        "lsd",
+        "neuron"
+    ],
+    "experimenter": [
+        "ADau",
+        "AHes"
+    ],
+    "lab": [
+        "BioMEMS"
+    ],
+    "date": "2024-04-23",
+    "time": null,
+    "experimentName": "exp_2024-04-23_ADau-AHes_mea-lsd-neuron",
+    "precursorExperimentNames": [
+        "exp_2024-04-22_ADau_mea-lsd-neuron"
+    ],
+    "sampleID": 1,
+    "ageDIV": 2,
+    "ageDAP": 3,
+    "numInfluenceGroups": 1,
+    "influenceGroups": {
+        "influenceGroup1": {
+            "control": {
+                "name": "Control",
+                "wells": [
+                    "SingleWell"
+                ]
+            },
+            "pharmacology": {
+                "name": "Bicuculline",
+                "concentration": 0.30000000000000004,
+                "concentrationUnit": "\u00b5g/ml",
+                "exposure": 0.0,
+                "exposureUnit": "s",
+                "wells": [
+                    "SingleWell"
+                ],
+                "notes": ""
+            }
+        }
+    },
+    "labDeviceType": "MEA",
+    "labDevice": {
+        "mea": {
+            "type": "MEA",
+            "name": "MEA_1-MultiWell",
+            "chipType": "MCS 60MEA200/30iRTi-gr",
+            "chipId": "20",
+            "recDur": 0,
+            "rate": 0
+        }
+    },
+    "notes": "",
+    "smiley": 5,
+    "creationDate": "2024-04-23T12:18:12.502295",
+    "filepath": "Human/Primary/Cardio/Cardiospheres/exp_2024-04-23_ADau-AHes_mea-lsd-neuron/Control_Bicuculline/sID1/DAP3/MEA_1-MultiWell/.DS_Store"
+}

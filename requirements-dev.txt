@@ -1,0 +1,10 @@
+# Backend
+# -r backend/requirements.txt
+
+# Frontend
+# -r frontend/requirements.txt
+
+# Development
+ruff==0.2.1
+pre-commit==3.7.0
+pytest==8.1.1
