@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  frontend:
+    container_name: cellrex-frontend
+    build: ./frontend
+    # user: "${UID}:${GID}"
+    ports:
+      - 8501:8501
+    depends_on:
+      - backend
+    volumes:
+      - ${LOCAL_DATA_PATH}:/appfe/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    networks:
+      - cellrex-network
+
+  backend:
+    container_name: cellrex-backend
+    build: ./backend
+    # user: "${UID}:${GID}"
+    ports:
+      - 8000:8000
+    environment:
+      - DATABASE_BACKEND=sqlite #${DATABASE_BACKEND}
+      - DATABASE_BACKEND_SQLITE_FILE=data/sqlite/CellRexMetadata.sqlite
+    volumes:
+      - ${LOCAL_DATA_PATH}:/appbe/data
+      - ${LOCAL_DATA_PATH_SQLITE}:/appbe/data/sqlite # must not be stored on a distributed file system
+      - ${LOCAL_DATA_PATH}/config:/appbe/config
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    networks:
+      - cellrex-network
+
+networks:
+  cellrex-network:
+    driver: bridge
