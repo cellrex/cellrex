@@ -28,9 +28,11 @@ Follow these steps to get started with CellRex:
 
 1. Create an `.env-File` with the following variables that will be used for docker-compose:
 ```env
-LOCAL_DATA_PATH = Path to your local or network storage where the upload folder should reside
-
-LOCAL_DATA_PATH_SQLITE = Path to the folder where the .sqlite-File will reside
+LOCAL_PATH_DATA = Path to your local or network storage where the data folder should reside
+LOCAL_PATH_UPLOAD = Path to your local or network storage where the upload folder should reside
+LOCAL_PATH_CONFIG = Path to your local or network storage where the labdata.yml should reside
+LOCAL_PATH_PROTOCOLS = Path to your local or network storage where the protocols should reside
+LOCAL_PATH_SQLITE = Path to the folder where the .sqlite-File will reside (must not be stored on a distributed file system)
 ```
 
 2. Build and start the container via docker-compose
