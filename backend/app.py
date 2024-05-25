@@ -65,9 +65,7 @@ async def read_root():
 # Mount the StaticFiles for serving of labdata files. static for dummy data, config for mounted docker
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 app.mount("/config", StaticFiles(directory="config", html=True), name="config")
-app.mount(
-    "/protocols", StaticFiles(directory="data/protocols", html=True), name="protocols"
-)
+app.mount("/protocols", StaticFiles(directory="protocols", html=True), name="protocols")
 
 
 if __name__ == "__main__":

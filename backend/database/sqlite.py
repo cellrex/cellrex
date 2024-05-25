@@ -96,7 +96,7 @@ class DatabaseSessionManager:
 
 
 sqlite_file = os.getenv(
-    "DATABASE_BACKEND_SQLITE_FILE", default="data/sqlite/CellRexMetadata.sqlite"
+    "DATABASE_BACKEND_SQLITE_FILE", default="sqlite/CellRexMetadata.sqlite"
 )
 
 sessionmanager = DatabaseSessionManager(

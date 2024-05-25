@@ -9,7 +9,8 @@ services:
     depends_on:
       - backend
     volumes:
-      - ${LOCAL_DATA_PATH}:/appfe/data
+      - ${LOCAL_PATH_DATA}:/appfe/data
+      - ${LOCAL_PATH_UPLOAD}:/appfe/upload
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     restart: always
@@ -24,11 +25,13 @@ services:
       - 8000:8000
     environment:
       - DATABASE_BACKEND=sqlite #${DATABASE_BACKEND}
-      - DATABASE_BACKEND_SQLITE_FILE=data/sqlite/CellRexMetadata.sqlite
+      - DATABASE_BACKEND_SQLITE_FILE=sqlite/CellRexMetadata.sqlite
     volumes:
-      - ${LOCAL_DATA_PATH}:/appbe/data
-      - ${LOCAL_DATA_PATH_SQLITE}:/appbe/data/sqlite # must not be stored on a distributed file system
-      - ${LOCAL_DATA_PATH}/config:/appbe/config
+      - ${LOCAL_PATH_DATA}:/appbe/data
+      - ${LOCAL_PATH_UPLOAD}:/appbe/upload
+      - ${LOCAL_PATH_CONFIG}:/appbe/config
+      - ${LOCAL_PATH_PROTOCOLS}:/appbe/protocols
+      - ${LOCAL_PATH_SQLITE}:/appbe/sqlite # must not be stored on a distributed file system
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     restart: always

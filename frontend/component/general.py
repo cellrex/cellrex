@@ -14,7 +14,6 @@ from core.utils import (
 )
 from core.utils_labdata import PrefillList
 from core.utils_json import DateTimeEncoder
-from resources.config import root_path, upload_path
 from core.utils import (
     BRAIN_REGIONS,
     CELL_TYPE,
@@ -27,6 +26,9 @@ from core.utils import (
     PROTOCOLS,
     SPECIES,
 )
+
+data_path = Path("data")
+upload_path = Path("upload")
 
 
 def subject_specification_component(experiment_data: Dict[str, Any]):
@@ -202,11 +204,11 @@ def session_metadata_component(experiment_data: Dict[str, Any]):
     )
 
     response = get_request(
-        "filemanagement", "exists", (root_path / filepath_so_far).as_posix()
+        "filemanagement", "exists", (data_path / filepath_so_far).as_posix()
     )
     if response.status_code == 200:
         existing_folders = get_request(
-            "filemanagement", "list", (root_path / filepath_so_far).as_posix()
+            "filemanagement", "list", (data_path / filepath_so_far).as_posix()
         ).json()["data"]
     else:
         existing_folders = []
@@ -309,7 +311,7 @@ def output_filepath_component(experiment_data: Dict[str, Any], filename):
         st.stop()
     experiment_path = Path(response.json()["data"]["experiment_path"])
 
-    complete_filepath: Path = root_path / experiment_path / filename
+    complete_filepath: Path = data_path / experiment_path / filename
 
     experiment_data["filepath"] = (experiment_path / filename).as_posix()
 
@@ -318,7 +320,7 @@ def output_filepath_component(experiment_data: Dict[str, Any], filename):
     )
     st.write(f":red[{experiment_path}]")
 
-    if not (root_path / experiment_path).exists():
+    if not (data_path / experiment_path).exists():
         st.info(
             "The chosen filepath does not currently exist. "
             "New subfolders will be created, which is the desired outcome.",

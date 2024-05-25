@@ -7,7 +7,7 @@ location. The metadata is also stored in a SQLite database.
 """
 
 from typing import Any, Dict
-
+from pathlib import Path
 import streamlit as st
 from component.device import session_device_component
 from component.filechooser import sticky_file_component
@@ -29,7 +29,6 @@ from component.sidebar import (
 from core.utils import (
     check_backend,
 )
-from resources.config import upload_path
 
 # Page configuration
 st.set_page_config(page_title="Upload", page_icon=":microbe:", layout="centered")
@@ -52,6 +51,7 @@ if not check_backend():
 
 # Actual page
 st.write("## Upload")
+upload_path = Path("upload")
 
 if not upload_path.exists():
     st.error(f"Upload folder does not exist. Please create it first at '{upload_path}'")

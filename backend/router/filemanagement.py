@@ -88,9 +88,11 @@ class FileWatcher(FileSystemEventHandler):
         }
 
 
+upload_path = "upload"
+
+
 def run_observer():
-    # TODO: Refactor to use environment variable here and in other places
-    path = "data/upload"
+    path = upload_path
     event_handler = FileWatcher()
     event_handler.calculate_hashes_on_startup(path)
     observer = PollingObserver()
@@ -168,7 +170,7 @@ async def get_filesize(filepath: str):
     },
 )
 async def get_upload_files():
-    upload_folder = pathlib.Path("data/upload")
+    upload_folder = pathlib.Path(upload_path)
 
     file_list = [f.name for f in upload_folder.iterdir() if f.is_file()]
 

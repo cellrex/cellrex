@@ -5,7 +5,7 @@ import streamlit as st
 from core.utils import get_request
 
 
-def sticky_file_component(search_path: str = "data/upload") -> Optional[Path]:
+def sticky_file_component(search_path: str = "upload") -> Optional[Path]:
     header = st.container()
     header_con = header.empty()
 
