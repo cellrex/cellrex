@@ -171,6 +171,7 @@ def session_metadata_component(experiment_data: Dict[str, Any]):
         "Date of measurement",
         value=experiment_data.get("date", datetime.now()),
         format="DD.MM.YYYY",
+        min_value=datetime(2000, 1, 1),
     )
 
     experiment_data["time"] = col_datetime2.time_input(
