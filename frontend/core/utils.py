@@ -100,7 +100,7 @@ def get_hash_calc(filename: str):
             case 404:
                 time.sleep(2)
 
-    st.empty()  # to break loop on streamlit reload
+        st.empty()  # to break loop on streamlit reload
 
     return hash_info
 
