@@ -65,7 +65,7 @@ match filename.suffix.lower():
     # case ".csv":
     #     file_handler = CSVHandler(filename)
     case ".invalid":
-        st.error("No file selected!")
+        st.error("Demofile selected!")
     case _:
         # st.error("File type not supported")
         pass

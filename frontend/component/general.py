@@ -410,6 +410,13 @@ def output_submit_component(
         "I've reviewed the details and acknowledge the warnings. Ready to upload."
     ):
         if st.button("Create file structure and move files"):
+            if filename.suffix.lower() == ".invalid":
+                st.success(
+                    "TRIAL RUN (no files were moved and no metadata created)\n\n "
+                    f"File **{filename}** moved and metadata file created sucessfully.",
+                    icon="⚠️",
+                )
+                return
             if _ := create_db_entry(
                 complete_filepath,
                 experiment_data,

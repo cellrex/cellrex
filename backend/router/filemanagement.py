@@ -124,13 +124,6 @@ router.add_event_handler("startup", startup_event)
     },
 )
 async def get_hash(filename: str):
-    # TODO: Better way to fix the bug?
-    if pathlib.Path(filename).suffix == ".invalid":
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=jsonable_encoder(NotFoundResponse()),
-        )
-
     hash_info = hash_cache.get(filename)
 
     if hash_info is None:
