@@ -330,6 +330,15 @@ def output_filepath_component(experiment_data: Dict[str, Any], filename):
     return complete_filepath
 
 
+def check_empty_upload_folder(filename):
+    if filename is None:
+        st.warning(
+            "No file found in the upload folder. No checks can be performed and no files can be moved.",
+            icon="⚠️",
+        )
+        st.stop()
+
+
 def output_check_component(
     experiment_data: Dict[str, Any], complete_filepath, filename
 ):
@@ -410,7 +419,7 @@ def output_submit_component(
         "I've reviewed the details and acknowledge the warnings. Ready to upload."
     ):
         if st.button("Create file structure and move files"):
-            if filename.suffix.lower() == ".invalid":
+            if filename.suffix.lower() == ".demofile":
                 st.success(
                     "TRIAL RUN (no files were moved and no metadata created)\n\n "
                     f"File **{filename}** moved and metadata file created sucessfully.",
