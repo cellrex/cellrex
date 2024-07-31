@@ -1,3 +1,4 @@
+# Ignore W1203
 import asyncio
 import hashlib
 import json
@@ -6,6 +7,7 @@ import os
 import pathlib
 import shutil
 import time
+import errno
 from concurrent.futures import ProcessPoolExecutor
 
 from fastapi import (
@@ -36,10 +38,13 @@ class FileWatcher(FileSystemEventHandler):
         if event.is_directory:
             return
         hash_cache.pop(pathlib.Path(event.src_path).name, None)
-        logger.info(f"File {event.src_path} has been {event.event_type}")
-        if event.event_type in ["created", "modified", "moved", "closed"]:
+        logger.info(event)
+        if event.event_type in ["created", "modified", "closed"]:
             key = pathlib.Path(event.src_path).name
             hash_cache[key] = self.calculate_hash(event.src_path)
+        elif event.event_type == "moved":
+            key = pathlib.Path(event.dest_path).name
+            hash_cache[key] = self.calculate_hash(event.dest_path)
 
     def calculate_hashes_on_startup(self, directory_path):
         with ProcessPoolExecutor() as executor:
@@ -52,7 +57,7 @@ class FileWatcher(FileSystemEventHandler):
             if result is not None:
                 hash_cache[result["filename"]] = result
 
-    def calculate_hash(self, filepath):
+    def calculate_hash(self, filepath, retries=5, delay=4):
         filepath = pathlib.Path(filepath)
         key = filepath.name
 
@@ -63,16 +68,23 @@ class FileWatcher(FileSystemEventHandler):
 
         sha256_hash = hashlib.sha256()
 
-        try:
-            with open(filepath, "rb") as f:
-                # Read and update hash in chunks of 64KB
-                for byte_block in iter(lambda: f.read(65536), b""):
-                    sha256_hash.update(byte_block)
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error calculating hash: {e}",
-            ) from e
+        # deal with files being still tranferred (busy file error)
+        for attempt in range(retries):
+            try:
+                with open(filepath, "rb") as f:
+                    # Read and update hash in chunks of 64KB
+                    for byte_block in iter(lambda: f.read(65536), b""):
+                        sha256_hash.update(byte_block)
+                break  # If successful, break out of the retry loop
+            except IOError as e:
+                if e.errno == errno.EBUSY and attempt < retries - 1:
+                    logger.warning(f"File is busy, retrying in {delay} seconds...")
+                    time.sleep(delay)
+                else:
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail=f"Error calculating hash: {e}",
+                    ) from e
 
         logger.info(
             "Hash calculation completed (%.2fs | %s: %s)",
@@ -165,7 +177,19 @@ async def get_filesize(filepath: str):
 async def get_upload_files():
     upload_folder = pathlib.Path(upload_path)
 
-    file_list = [f.name for f in upload_folder.iterdir() if f.is_file()]
+    # only add file non-busy files to the list
+    file_list = []
+    for f in upload_folder.iterdir():
+        if not f.is_file():
+            continue
+        try:
+            with open(f, "rb"):
+                file_list.append(f.name)
+        except IOError as e:
+            if e.errno == errno.EBUSY:
+                logger.warning(f"File {f.name} is busy and cannot be accessed.")
+            else:
+                raise
 
     if not file_list:
         raise HTTPException(
