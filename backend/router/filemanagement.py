@@ -36,9 +36,7 @@ hash_cache = {}
 class FileWatcher(FileSystemEventHandler):
     def on_any_event(self, event):
         hash_cache.pop(pathlib.Path(event.src_path).name, None)
-        logger.info(event)
-
-        logger.info(event)
+        logger.debug(event)
 
         if event.is_directory:
             hash_func = self.calculate_folder_hash
@@ -56,13 +54,20 @@ class FileWatcher(FileSystemEventHandler):
     def calculate_hashes_on_startup(self, directory_path):
         with ProcessPoolExecutor() as executor:
             path = pathlib.Path(directory_path)
-            files = [f for f in path.glob("*") if f.is_file()]
-            logger.info(f"files in upload folder: {files}")
-            results = executor.map(self.calculate_hash, files)
+            files = [f for f in path.glob("*")]
+            logger.info(f"items in upload folder: {files}")
 
-        for result in results:
-            if result is not None:
-                hash_cache[result["filename"]] = result
+            futures = []
+            for item in files:
+                if item.is_file():
+                    futures.append(executor.submit(self.calculate_hash, item))
+                elif item.is_dir():
+                    futures.append(executor.submit(self.calculate_folder_hash, item))
+
+            for future in futures:
+                result = future.result()
+                if result is not None:
+                    hash_cache[result["filename"]] = result
 
     def calculate_hash(self, filepath, retries=5, delay=4):
         logger.info(f"Calculating hash for file: {filepath}")
@@ -228,11 +233,19 @@ async def get_upload_files():
     # only add file non-busy files to the list
     file_list = []
     for f in upload_folder.iterdir():
-        if not f.is_file():
-            continue
         try:
-            with open(f, "rb"):
+            if f.is_file():
+                with open(f, "rb"):
+                    file_list.append(f.name)
+            elif f.is_dir():
+                # walk through the directory to check if all files are accessible
+                for root, _, files in os.walk(f):
+                    for file in files:
+                        with open(os.path.join(root, file), "rb"):
+                            pass
                 file_list.append(f.name)
+            else:
+                logger.warning(f"File {f.name} is not a file or directory.")
         except IOError as e:
             if e.errno == errno.EBUSY:
                 logger.warning(f"File {f.name} is busy and cannot be accessed.")
