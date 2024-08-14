@@ -63,19 +63,13 @@ class InfluenceGroup(BaseModel):
     stimulus: Optional[Stimulus] = None
     disease: Optional[Disease] = None
 
+class AntibodyGroup(BaseModel):
+    prim: Optional[str] = None
+    sec: Optional[str] = None
 
 class IFStaining(BaseModel):
-    numAntibodies: Optional[int] = None
-    abPrim1: Optional[str] = None
-    abSec1: Optional[str] = None
-    abPrim2: Optional[str] = None
-    abSec2: Optional[str] = None
-    abPrim3: Optional[str] = None
-    abSec3: Optional[str] = None
-    abPrim4: Optional[str] = None
-    abSec4: Optional[str] = None
-    abPrim5: Optional[str] = None
-    abSec5: Optional[str] = None
+    numAntibodies: Optional[int] = Field(..., ge=0)
+    antibodyGroups: Dict[str, AntibodyGroup] = ...
     abCon: Optional[str] = None
     dyeOth: Optional[str] = None
 

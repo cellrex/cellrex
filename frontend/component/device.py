@@ -124,23 +124,39 @@ def if_staining_component(device_dict):
 
     # Initialize containers dynamically
     containers = [st.container() for _ in range(case_dict.get("numAntibodies", 0))]
+    containers_keys = [f"antibodyGroup{i}" for i in range(1, len(containers) + 1)]
+    if case_dict.get("antibodyGroups") is None:
+        case_dict["antibodyGroups"] = {}
 
-    # Use the containers as needed
-    for index, container in enumerate(containers, start=1):
-        container.write(f":red[ANTIBODY {index}]")
+    def antibody_specification_component(case_dict: Dict[str, Any], key):
+        if case_dict["antibodyGroups"].get(key) is None:
+            antibody_group_dict = case_dict["antibodyGroups"][key] = {}
+        else:
+            antibody_group_dict = case_dict["antibodyGroups"][key]
         col_container = container.columns(2)
-        case_dict[f"abPrim{index}"] = col_container[0].selectbox(
+        antibody_group_dict["prim"] = col_container[0].selectbox(
             "primary antibody",
             options=ANTIBODY_PRIMARY,
-            index=ANTIBODY_PRIMARY.getindexdefault(f"abPrim{index}", case_dict),
-            key=f"abPrim{index}",
+            index=ANTIBODY_PRIMARY.getindexdefault(f"prim", antibody_group_dict),
+            key=f"{key}Prim",
         )
-        case_dict[f"abSec{index}"] = col_container[1].selectbox(
+        antibody_group_dict["sec"] = col_container[1].selectbox(
             "secondary antibody",
             options=ANTIBODY_SECONDARY,
-            index=ANTIBODY_SECONDARY.getindexdefault(f"abSec{index}", case_dict),
-            key=f"abSec{index}",
+            index=ANTIBODY_PRIMARY.getindexdefault(f"sec", antibody_group_dict),
+            key=f"{key}Sec",
         )
+    # Use the containers as needed
+    for container, key in zip(containers, containers_keys):
+        with container:
+            st.write(f":red[ANTIBODY {''.join(filter(str.isdigit, key))}]")
+            antibody_specification_component(
+                 case_dict, key=key
+            )
+
+    # Remove antibody groups that are not selected anymore
+    for key in set(case_dict["antibodyGroups"].keys()).difference(containers_keys):
+        case_dict["antibodyGroups"].pop(key, None)
 
     st.write("###### General")
     case_dict["abCon"] = st.selectbox(
