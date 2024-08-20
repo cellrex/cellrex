@@ -6,7 +6,7 @@ The metadata is stored in a JSON file and the file is moved to a specified
 location. The metadata is also stored in a SQLite database.
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, Union
 from pathlib import Path
 import streamlit as st
 from component.device import session_device_component
@@ -18,6 +18,7 @@ from component.general import (
     subject_specification_component,
     output_filepath_component,
     output_check_component,
+    check_empty_upload_folder,
     output_submit_component,
 )
 from component.influence import influence_meta_specification_component
@@ -58,17 +59,18 @@ if not upload_path.exists():
     st.stop()
 
 # Sticky file component to select the file to be specified
-filename = sticky_file_component(search_path=upload_path)
+filename: Union[str | None] = sticky_file_component(search_path=upload_path)
 
-# Delegate to the correct file handler
-match filename.suffix.lower():
-    # case ".csv":
-    #     file_handler = CSVHandler(filename)
-    case ".invalid":
-        st.error("No file selected!")
-    case _:
-        # st.error("File type not supported")
-        pass
+if filename is not None:
+    # Delegate to the correct file handler
+    match filename.suffix.lower():
+        # case ".csv":
+        #     file_handler = CSVHandler(filename)
+        case ".demofile":
+            st.error("Demofile selected!")
+        case _:
+            # st.error("File type not supported")
+            pass
 
 # file_metadata = file_handler.file_metadata
 # if st.toggle("Allow information from file to overwrite template"):
@@ -99,6 +101,7 @@ st.write("## General")
 session_notes_component(experiment_data)
 
 st.write("---")
+check_empty_upload_folder(filename)
 st.write("## Output")
 
 st.write("##### File path")

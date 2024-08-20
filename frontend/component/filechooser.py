@@ -47,11 +47,10 @@ def sticky_file_component(search_path: str = "upload") -> Optional[Path]:
         case 404:
             header_con.warning(
                 "No file found in the upload folder. Please also check for supported filetypes. "
-                "Upload all files to the upload folder at:"
-                f"\n **{Path(search_path).absolute()}**",
+                "Upload all files to the upload folder.",
                 icon="⚠️",
             )
-            return Path("filename.invalid")
+            return None
         case _:
             header_con.error(
                 f"An error occurred while fetching the file list. Error code: {result_filelist.status_code}",
