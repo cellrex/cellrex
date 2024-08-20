@@ -9,7 +9,7 @@ from typing import Optional
 from core.utils_yml import parse_labdata
 
 
-BASE_URL = "http://backend:8000"
+BASE_URL = "http://cellrex-backend:8000"
 
 
 def read_protocol_file(protocol_file):
