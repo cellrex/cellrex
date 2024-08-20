@@ -9,8 +9,8 @@ from typing import Optional
 from core.utils_yml import parse_labdata
 
 
-BASE_URL_STATIC = "http://backend:8000"
-BASE_URL_API = "http://backend:8000/v1"
+BASE_URL_STATIC = "http://cellrex-backend:8000"
+BASE_URL_API = "http://cellrex-backend:8000/v1"
 
 
 def read_protocol_file(protocol_file):
