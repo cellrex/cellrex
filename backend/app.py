@@ -1,7 +1,7 @@
 import logging
 
 from bson.errors import InvalidId
-from fastapi import FastAPI, Request
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -16,7 +16,13 @@ The API has two main parts:
 - Filemanagement: This part is responsible for managing the files. It provides endpoints for listing the files and getting the metadata of a file.
 """
 
-app = FastAPI(
+api_v1_router = APIRouter()
+api_v1_router.include_router(BiofilesRouter, tags=["Biofiles"], prefix="/biofiles")
+api_v1_router.include_router(
+    FilemanagementRouter, tags=["Filemanagement"], prefix="/filemanagement"
+)
+
+app_v1 = FastAPI(
     title="CellRex API",
     description=description,
     version="0.1",
@@ -26,10 +32,18 @@ app = FastAPI(
         "email": "cellrex@outlook.com",
     },
 )
+app_v1.include_router(api_v1_router)
 
-app.include_router(BiofilesRouter, tags=["Biofiles"], prefix="/biofiles")
-app.include_router(
-    FilemanagementRouter, tags=["Filemanagement"], prefix="/filemanagement"
+
+app = FastAPI(
+    title="CellRex API",
+    description=description,
+    version="0.1",
+    contact={
+        "name": "CellRex",
+        "url": "https://github.com/cellrex/cellrex",
+        "email": "cellrex@outlook.com",
+    },
 )
 
 
@@ -57,10 +71,14 @@ async def invalidId_exception_handler(request: Request, exc: InvalidId):
     )
 
 
+@app_v1.get("/", tags=["Root"])
 @app.get("/", tags=["Root"])
 async def read_root():
-    return {"message": "Welcome to CellRex API!"}
+    return {"message": "Welcome to CellRex API! Please go to /v1 to access the API."}
 
+
+# Mount the routers
+app.mount("/v1", app_v1)
 
 # Mount the StaticFiles for serving of labdata files. static for dummy data, config for mounted docker
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")

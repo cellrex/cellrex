@@ -9,11 +9,12 @@ from typing import Optional
 from core.utils_yml import parse_labdata
 
 
-BASE_URL = "http://backend:8000"
+BASE_URL_STATIC = "http://backend:8000"
+BASE_URL_API = "http://backend:8000/v1"
 
 
 def read_protocol_file(protocol_file):
-    url = f"{BASE_URL}/{protocol_file}"
+    url = f"{BASE_URL_API}/{protocol_file}"
 
     response = requests.get(url)
 
@@ -32,7 +33,7 @@ def read_protocol_file(protocol_file):
 def get_request(
     route: str, endpoint: str, parameter: Optional[str] = None, timeout: int = 10
 ) -> dict:
-    url = f"{BASE_URL}/{route}/{endpoint}"
+    url = f"{BASE_URL_API}/{route}/{endpoint}"
     if parameter:
         url += f"/{parameter}"
     response = requests.get(url, timeout=timeout)
@@ -41,7 +42,7 @@ def get_request(
 
 def post_request(route: str, endpoint: str, data: dict, timeout: int = 10) -> dict:
     response = requests.post(
-        f"{BASE_URL}/{route}/{endpoint}",
+        f"{BASE_URL_API}/{route}/{endpoint}",
         json=data,
         timeout=timeout,
     )
@@ -49,8 +50,8 @@ def post_request(route: str, endpoint: str, data: dict, timeout: int = 10) -> di
 
 
 def get_labdata():
-    url = f"{BASE_URL}/config/labdata.yml"
-    dummy_url = f"{BASE_URL}/static/labdata_dummy.yml"
+    url = f"{BASE_URL_STATIC}/config/labdata.yml"
+    dummy_url = f"{BASE_URL_STATIC}/static/labdata_dummy.yml"
 
     response = requests.get(url)
 
