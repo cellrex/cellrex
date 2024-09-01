@@ -13,7 +13,7 @@ services:
       - ${LOCAL_PATH_UPLOAD}:/appfe/upload
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-    restart: always
+    restart: no
     networks:
       - cellrex-network
 
@@ -34,7 +34,7 @@ services:
       - ${LOCAL_PATH_SQLITE}:/appbe/sqlite # must not be stored on a distributed file system
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-    restart: always
+    restart: no
     networks:
       - cellrex-network
 
