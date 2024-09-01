@@ -42,6 +42,12 @@ class NotFoundResponse(BaseModel):
     message: str = "Biofile doesn't exist."
 
 
+class BadRequestResponse(BaseModel):
+    error: str = "Bad Request"
+    code: int = 400
+    message: str = "The request is invalid"
+
+
 class CacheExpiredResponse(BaseModel):
     error: str = "Cache Expired"
     code: int = 408
@@ -52,3 +58,15 @@ class DatabaseErrorResponse(BaseModel):
     error: str = "Database Error"
     code: int = 503
     message: str = "An error occurred while interacting with the database"
+
+
+class PaginationParams(BaseModel):
+    offset: int = Field(0, ge=0)
+    limit: int = Field(10, gt=0, le=100)
+
+
+class PaginatedResponse(BaseModel):
+    items: List[BiofileResponse]
+    total: int
+    offset: int
+    limit: int

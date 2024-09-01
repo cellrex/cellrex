@@ -3,14 +3,17 @@ from typing import List, Optional
 import pathlib
 
 from database.sqlite import SQLiteDatabase
-from fastapi import APIRouter, Body, HTTPException, Path, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
 from fastapi.encoders import jsonable_encoder
 from model.biofile import Biofile, FilecontextOptional
 from model.response import (
+    BadRequestResponse,
     BiofileResponse,
     DatabaseErrorResponse,
     GeneralResponse,
     NotFoundResponse,
+    PaginatedResponse,
+    PaginationParams,
     ServerErrorResponse,
 )
 from model.search import SearchModel
@@ -26,22 +29,44 @@ else:
 @router.get(
     "/all",
     summary="Retrieve all biofiles present in the database",
-    response_model=List[BiofileResponse],
+    response_model=PaginatedResponse,
     responses={
-        status.HTTP_404_NOT_FOUND: {"model": NotFoundResponse},
+        200: {
+            "model": PaginatedResponse,
+            "description": "Successfully retrieved biofiles",
+        },
+        404: {
+            "model": NotFoundResponse,
+            "description": "No biofiles found in the database",
+        },
+        400: {
+            "model": BadRequestResponse,
+            "description": "Invalid pagination parameters",
+        },
     },
     response_model_exclude_none=True,
 )
-async def get_biofiles():
-    biofiles = await DB.retrieve_biofiles()
+async def get_biofiles(pagination: PaginationParams = Depends()) -> PaginatedResponse:
+    biofiles, total = await DB.retrieve_biofiles(
+        offset=pagination.offset, limit=pagination.limit
+    )
 
-    if not biofiles:
+    if total == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=jsonable_encoder(NotFoundResponse()),
+            detail="No biofiles found in the database.",
         )
 
-    return biofiles
+    if pagination.offset >= total:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Offset {pagination.offset} exceeds the total number of items ({total}). "
+            f"Please use an offset between 0 and {total - 1}.",
+        )
+
+    return PaginatedResponse(
+        items=biofiles, total=total, offset=pagination.offset, limit=pagination.limit
+    )
 
 
 @router.post(
