@@ -73,6 +73,9 @@ response = post_request("biofiles", "search", search_data)
 if response.status_code == 200:
     data = response.json()  # List[BiofileResponse]
 
+    # TODO: Pagination from API backend
+    data = data["items"]
+
     dataframe_columns = st.columns([1 / 12, 11 / 12])
     flattening_level = dataframe_columns[0].number_input(
         "Flattening level", min_value=1, max_value=3, value=3
@@ -87,8 +90,9 @@ if response.status_code == 200:
     )
     if visible_columns is None:
         visible_columns = df.columns
+    # TODO: Pagination
     st.text(
-        f"Items found: {len(df)}",
+        f"Items found: {response.json()['total']}",
         help="Note that several items (files) may belong to a single measurement.",
     )
     st.dataframe(df, column_order=visible_columns, use_container_width=True)

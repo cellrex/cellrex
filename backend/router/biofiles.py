@@ -192,19 +192,37 @@ async def get_biofile_data_by_hash(filehash: str):
 
 @router.post(
     "/search",
-    summary="Retrieve biofiles by search model",
-    response_model=List[BiofileResponse],
-    responses={status.HTTP_404_NOT_FOUND: {"model": NotFoundResponse}},
+    summary="Retrieve paginated biofiles by search model",
+    response_model=PaginatedResponse,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"model": NotFoundResponse},
+        status.HTTP_400_BAD_REQUEST: {"model": BadRequestResponse},
+    },
     response_model_exclude_none=True,
 )
-async def get_biofiles_by_search(search: SearchModel = Body(...)):
-    biofiles = await DB.retrieve_biofiles_by_search(search)
-    if not biofiles:
+async def get_biofiles_by_search(
+    search: SearchModel = Body(...), pagination: PaginationParams = Depends()
+) -> PaginatedResponse:
+    biofiles, total = await DB.retrieve_biofiles_by_search(
+        search, pagination.offset, pagination.limit
+    )
+
+    if total == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=jsonable_encoder(NotFoundResponse()),
         )
-    return biofiles
+
+    if pagination.offset >= total:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Offset {pagination.offset} exceeds the total number of items ({total}). "
+            f"Please use an offset between 0 and {total - 1}.",
+        )
+
+    return PaginatedResponse(
+        items=biofiles, total=total, offset=pagination.offset, limit=pagination.limit
+    )
 
 
 @router.get(
