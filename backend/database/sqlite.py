@@ -3,12 +3,12 @@
 import os
 import contextlib
 import json
-from typing import Any, AsyncIterator, Dict, List
+from typing import Any, AsyncIterator, Dict, List, Tuple
 
 from database.base import DatabaseInterface
 from model.biofile import Biofile
 from model.search import SearchModel
-from sqlalchemy import create_engine, select, text
+from sqlalchemy import create_engine, func, select, text
 from sqlalchemy.dialects.sqlite import insert as sqlite_upsert
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
@@ -158,19 +158,24 @@ class SQLiteDatabase(DatabaseInterface):
 
                 return
 
-    async def retrieve_biofiles(self) -> List[Dict] | None:
+    async def retrieve_biofiles(
+        self, offset: int, limit: int
+    ) -> Tuple[List[Dict], int] | None:
         """Retrieve all biofiles present in the database"""
         async with sessionmanager.session() as session:
-            # for streaming ORM results, AsyncSession.stream() may be used.
-            stmt = select(SqlBiofile)
+            # Count total biofiles
+            count_stmt = select(func.count()).select_from(SqlBiofile)
+            total = await session.scalar(count_stmt)
+
+            # Fetch paginated biofiles
+            stmt = select(SqlBiofile).offset(offset).limit(limit)
             result = await session.stream(stmt)
 
-            # result is a streaming AsyncResult object.
             biofiles = []
             async for biofile in result.scalars():
                 biofiles.append(sqlite_orm_to_dict(biofile))
 
-            return biofiles
+            return biofiles, total
 
     async def retrieve_biofile_by_id(self, biofile_id: str) -> Dict | None:
         """Retrieve a biofile with a matching ID"""
