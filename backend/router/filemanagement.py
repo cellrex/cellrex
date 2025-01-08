@@ -1,6 +1,5 @@
 # Ignore W1203
 import asyncio
-import errno
 import hashlib
 import json
 import logging
@@ -8,6 +7,7 @@ import os
 import pathlib
 import shutil
 import time
+import errno
 from concurrent.futures import ProcessPoolExecutor
 
 from fastapi import (
@@ -35,46 +35,36 @@ hash_cache = {}
 
 class FileWatcher(FileSystemEventHandler):
     def on_any_event(self, event):
-        hash_cache.pop(pathlib.Path(event.src_path).name, None)
-        logger.debug(event)
-
         if event.is_directory:
-            hash_func = self.calculate_folder_hash
-        else:
-            hash_func = self.calculate_hash
-
-        match event.event_type:
-            case "created" | "modified" | "closed":
-                key = pathlib.Path(event.src_path).name
-                hash_cache[key] = hash_func(event.src_path)
-            case "moved":
-                key = pathlib.Path(event.dest_path).name
-                hash_cache[key] = hash_func(event.dest_path)
+            return
+        hash_cache.pop(pathlib.Path(event.src_path).name, None)
+        logger.info(event)
+        if event.event_type in ["created", "modified", "closed"]:
+            key = pathlib.Path(event.src_path).name
+            hash_cache[key] = self.calculate_hash(event.src_path)
+        elif event.event_type == "moved":
+            key = pathlib.Path(event.dest_path).name
+            hash_cache[key] = self.calculate_hash(event.dest_path)
 
     def calculate_hashes_on_startup(self, directory_path):
         with ProcessPoolExecutor() as executor:
             path = pathlib.Path(directory_path)
-            files = [f for f in path.glob("*")]
-            logger.info(f"items in upload folder: {files}")
+            files = [f for f in path.glob("*") if f.is_file()]
+            logger.info(f"files in upload folder: {files}")
+            results = executor.map(self.calculate_hash, files)
 
-            futures = []
-            for item in files:
-                if item.is_file():
-                    futures.append(executor.submit(self.calculate_hash, item))
-                elif item.is_dir():
-                    futures.append(executor.submit(self.calculate_folder_hash, item))
-
-            for future in futures:
-                result = future.result()
-                if result is not None:
-                    hash_cache[result["filename"]] = result
+        for result in results:
+            if result is not None:
+                hash_cache[result["filename"]] = result
 
     def calculate_hash(self, filepath, retries=5, delay=4):
-        logger.info(f"Calculating hash for file: {filepath}")
         filepath = pathlib.Path(filepath)
         key = filepath.name
 
         start_time = time.time()
+        if not filepath.is_file():
+            logger.error(f"Hash calculation: File not found at {filepath}")
+            return
 
         sha256_hash = hashlib.sha256()
 
@@ -97,52 +87,9 @@ class FileWatcher(FileSystemEventHandler):
                     ) from e
 
         logger.info(
-            "Hash calculation for file completed (%.2fs | %s: %s)",
+            "Hash calculation completed (%.2fs | %s: %s)",
             time.time() - start_time,
             filepath,
-            sha256_hash.hexdigest(),
-        )
-
-        return {
-            "filename": key,
-            "hash": sha256_hash.hexdigest(),
-            "timestamp": time.time(),
-        }
-
-    def calculate_folder_hash(self, folderpath, retries=5, delay=4):
-        logger.info(f"Calculating hash for folder: {folderpath}")
-        folderpath = pathlib.Path(folderpath)
-        key = folderpath.name
-
-        start_time = time.time()
-
-        sha256_hash = hashlib.sha256()
-
-        for root, _, files in os.walk(folderpath):
-            for file in sorted(files):  # Sort files to ensure consistent hash
-                file_path = os.path.join(root, file)
-                for attempt in range(retries):
-                    try:
-                        with open(file_path, "rb") as f:
-                            for byte_block in iter(lambda: f.read(65536), b""):
-                                sha256_hash.update(byte_block)
-                        break  # If successful, break out of the retry loop
-                    except IOError as e:
-                        if e.errno == errno.EBUSY and attempt < retries - 1:
-                            logger.warning(
-                                f"File is busy, retrying in {delay} seconds..."
-                            )
-                            time.sleep(delay)
-                        else:
-                            raise HTTPException(
-                                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail=f"Error calculating hash: {e}",
-                            ) from e
-
-        logger.info(
-            "Hash calculation for folder completed (%.2fs | %s: %s)",
-            time.time() - start_time,
-            folderpath,
             sha256_hash.hexdigest(),
         )
 
@@ -233,19 +180,11 @@ async def get_upload_files():
     # only add file non-busy files to the list
     file_list = []
     for f in upload_folder.iterdir():
+        if not f.is_file():
+            continue
         try:
-            if f.is_file():
-                with open(f, "rb"):
-                    file_list.append(f.name)
-            elif f.is_dir():
-                # walk through the directory to check if all files are accessible
-                for root, _, files in os.walk(f):
-                    for file in files:
-                        with open(os.path.join(root, file), "rb"):
-                            pass
+            with open(f, "rb"):
                 file_list.append(f.name)
-            else:
-                logger.warning(f"File {f.name} is not a file or directory.")
         except IOError as e:
             if e.errno == errno.EBUSY:
                 logger.warning(f"File {f.name} is busy and cannot be accessed.")
