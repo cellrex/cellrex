@@ -69,12 +69,33 @@ st.write("## Search Results")
 search_data = {k: v for k, v in search_data.items() if v}
 # st.write(search_data)
 
-response = post_request("biofiles", "search", search_data)
+response = post_request(
+    "biofiles", "search", parameter={"offset": 0, "limit": 10}, data=search_data
+)
 if response.status_code == 200:
     data = response.json()  # List[BiofileResponse]
+    total_items = data["total"]
+    limit = 100
+    current_offset = 0
 
-    # TODO: Pagination from API backend
-    data = data["items"]
+    biofiles = []
+
+    while True:
+        response = post_request(
+            "biofiles",
+            "search",
+            parameter={"offset": current_offset, "limit": limit},
+            data=search_data,
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        biofiles.extend(data["items"])
+
+        if current_offset + limit >= total_items:
+            break
+
+        current_offset += limit
 
     dataframe_columns = st.columns([1 / 12, 11 / 12])
     flattening_level = dataframe_columns[0].number_input(
@@ -82,7 +103,7 @@ if response.status_code == 200:
     )
 
     df = pd.json_normalize(
-        [row["filecontext"] for row in data], max_level=flattening_level
+        [row["filecontext"] for row in biofiles], max_level=flattening_level
     )
 
     visible_columns = dataframe_columns[1].multiselect(

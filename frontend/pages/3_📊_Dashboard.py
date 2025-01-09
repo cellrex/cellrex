@@ -15,6 +15,13 @@ from core.utils import check_backend, get_request
 
 st.set_page_config(page_title="Dashboard", page_icon=":microbe:", layout="wide")
 
+# Layout configuration
+p_width = 350
+p_height = 300
+gap = "small"
+legend = dict(orientation="h", yanchor="bottom", y=1.2, xanchor="center", x=0.5)
+theme = "streamlit"
+
 sidebar_logo_component()
 
 if not check_backend():
@@ -22,18 +29,35 @@ if not check_backend():
 
 st.write("## Dashboard")
 
-response = get_request("biofiles", "all", timeout=10)
+response = get_request(
+    "biofiles", "all", parameter={"offset": 0, "limit": 10}, timeout=10
+)
 if response.status_code == 200:
     data = response.json()
+    total_items = data["total"]
+    limit = 100
+    current_offset = 0
 
-    # Layout configuration
-    p_width = 350
-    p_height = 300
-    gap = "small"
-    legend = dict(orientation="h", yanchor="bottom", y=1.2, xanchor="center", x=0.5)
-    theme = "streamlit"
+    biofiles = []
 
-    df_all = pd.json_normalize(row for row in data)
+    while True:
+        response = get_request(
+            "biofiles",
+            "all",
+            parameter={"offset": current_offset, "limit": limit},
+            timeout=10,
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        biofiles.extend(data["items"])
+
+        if current_offset + limit >= total_items:
+            break
+
+        current_offset += limit
+
+    df_all = pd.json_normalize(row for row in biofiles)
 
     line_1_1, line_1_2, line_1_3 = st.columns(3, gap=gap)
 
@@ -49,7 +73,7 @@ if response.status_code == 200:
         total_data_size = round(df_all["filesize"].sum() * 1e-9, 2)
         st.metric(label="Total size", value=f"{total_data_size} GB")
 
-    df = pd.json_normalize([row["filecontext"] for row in data])
+    df = pd.json_normalize([row["filecontext"] for row in biofiles])
 
     line_2_1, line_2_2, line_2_3 = st.columns(3, gap=gap)
 

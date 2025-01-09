@@ -433,8 +433,8 @@ def output_submit_component(
                 hash_info,
             ):
                 response = post_request(
-                    route="filemanagement",
-                    endpoint="move",
+                    "filemanagement",
+                    "move",
                     data={
                         "filename": filename.as_posix(),
                         "srcpath": upload_path.as_posix(),
