@@ -72,6 +72,10 @@ async def invalidId_exception_handler(request: Request, exc: InvalidId):
 
 
 @app_v1.get("/", tags=["Root"])
+async def read_root_v1():
+    return {"message": "Welcome to CellRex API!"}
+
+
 @app.get("/", tags=["Root"])
 async def read_root():
     return {"message": "Welcome to CellRex API! Please go to /v1 to access the API."}
