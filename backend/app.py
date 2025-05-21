@@ -3,10 +3,11 @@ import logging
 from bson.errors import InvalidId
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from router.biofiles import router as BiofilesRouter
 from router.filemanagement import router as FilemanagementRouter
+from router.filemanagement import lifespan
 
 description = """
 This is the API for the CellRex project. It is a FastAPI application that provides endpoints for uploading and managing biofiles.
@@ -44,6 +45,7 @@ app = FastAPI(
         "url": "https://github.com/cellrex/cellrex",
         "email": "cellrex@outlook.com",
     },
+    lifespan=lifespan,
 )
 
 
@@ -76,9 +78,9 @@ async def read_root_v1():
     return {"message": "Welcome to CellRex API!"}
 
 
-@app.get("/", tags=["Root"])
+@app.get("/", response_class=RedirectResponse, tags=["Root"])
 async def read_root():
-    return {"message": "Welcome to CellRex API! Please go to /v1 to access the API."}
+    return "/v1"
 
 
 # Mount the routers
