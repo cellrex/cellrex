@@ -1,0 +1,226 @@
+# This file contains all the dynamic data that is used
+# in the application and can be changed by the user.
+
+ORGAN_TYPE:
+  - "Cardio"
+  - "Neuro"
+  - "Kidney"
+
+CELL_TYPE:
+  Cardio:
+    - Cardiospheres
+    - Cardiomyocytes
+  Neuro:
+    - Neurospheres
+    - Organoids
+    - Assembloids
+    - Monolayer
+  Kidney:
+    - Kidney
+
+MULTI_CELL_TYPES:
+  - Organoids
+  - Assembloids
+  - Monolayer
+
+DEVICES:
+  - MEA
+  - Microscope
+
+INFLUENCE:
+  - control
+  - sham
+  - pharmacology
+  - radiation
+  - stimulus
+  - disease
+
+MICROSCOPE_TASKS:
+  - Brightfield
+  - CA2+Imaging
+  - IF-staining
+
+
+## DYNAMIC DATA
+
+KEYWORDS:
+  - "mea"
+  - "lsd"
+  - "neuron"
+  - "ooc"
+  - "boc"
+  - "fluorescence"
+  - "dapi"
+  - "cal520"
+  - "tsc"
+  - "connection"
+  - "neurospheres"
+  - "radiation"
+  - "x-ray"
+  - "bicuculline"
+
+LABS:
+  - "Lab1"
+
+EXPERIMENTERS:
+  - "MRec"
+  - "MIss"
+  - "JDoe"
+  - "TUser"
+
+SPECIES:
+  - "Fish"
+  - "Chicken"
+  - "Human"
+  - "Rat"
+  - "Mouse"
+
+ORIGIN:
+  - "Primary"
+  - "iPSC"
+  - "eSC"
+
+BRAIN_REGIONS:
+  - "PFC"
+  - "HIPP"
+  - "CX"
+
+PROTOCOLS:
+  DEMO__Coating_Laminin_1h_37C: "protocols/Coating_Laminin_1h_37C.txt"
+  DEMO__Coating_PEI_1h_RT: "protocols/Coating_PEI_1h_RT.txt"
+
+DISEASE:
+  - "Cancer"
+  - "Epilepsy"
+  - "Alzheimer"
+  - "Dystonia"
+
+DRUG:
+  - "Bicuculline"
+  - "Cisplatin"
+  - "Carbamazepine"
+  - "Chinidin"
+  - "Isoproterenol"
+  - "Levetiracetan"
+  - "Rotenon"
+  - "LSD"
+  - "DMT"
+
+DRUG_UNIT:
+  - "µg/ml"
+  - "mg/ml"
+  - "g/ml"
+  - "µM"
+  - "mM"
+  - "M"
+
+TIME_UNIT:
+  - "s"
+  - "min"
+  - "h"
+  - "d"
+  - "inf"
+
+RADIATION:
+  - "X-Ray"
+  - "TETRA"
+  - "C-ions"
+  - "Fe-ions"
+  - "Ni-ions"
+  - "Ti-ions"
+  - "protons"
+
+RADIATION_UNIT:
+  - "Gy"
+  - "mGy"
+  - "rad"
+
+IRRADIATION_DEVICE:
+  - "IrradiationDevice 1"
+  - "IrradiationDevice 2"
+
+STIMULUS:
+  - "To be defined"
+
+
+DEVICE_MEA:
+  - "MEA_1-MultiWell"
+
+DEVICE_MICROSCOPE:
+  - "Mic_1-Reflected-light"
+
+MAGNIFICATIONS:
+  - "5x"
+  - "10x"
+  - "20x"
+  - "40x"
+  - "60x"
+  - "63x"
+  - "100x"
+
+MEA_CHIP_TYPE:
+  - "MCS 60MEA200/30iRTi-gr"
+
+ANTIBODY_PRIMARY:
+  - "MAP2"
+  - "βIII - tubulin"
+  - "Synaptophysin"
+  - "Casp3"
+  - "γH2AX"
+  - "GFAP"
+  - "Nestin"
+  - "PSD - 95"
+  - "SOX2"
+  - "Oct4"
+  - "MBP"
+  - "EAAT1"
+
+ANTIBODY_SECONDARY:
+  - "Goat Anti - Rabbit lgG H & L(Alexa Fluor 488)"
+  - "Goat Anti - Mouse lgG H & L(Alexa Fluor 488)"
+  - "Donkey Anti - Mouse lgG H & L(Alexa Fluor 594)"
+  - "Donkey Anti - Rabbit lgG H & L(Alexa Fluor 594)"
+
+ANTIBODY_CONJUGATED:
+  - null
+  - "Phalloidin - iFluor 488"
+
+DYE_CA2_IMAGING:
+  - "Fluo - 4"
+  - "Rhod - 3"
+  - "Cal - 520"
+  - "Calbryte - 520"
+
+DYE_OTHER:
+  - null
+  - "DAPI"
+  - "Hoechst"
+  - "CellTracker green"
+
+WELLS:
+  - "SingleWell"
+  - "AllWell"
+  - "A1"
+  - "A2"
+  - "A3"
+  - "A4"
+  - "A5"
+  - "A6"
+  - "B1"
+  - "B2"
+  - "B3"
+  - "B4"
+  - "B5"
+  - "B6"
+  - "C1"
+  - "C2"
+  - "C3"
+  - "C4"
+  - "C5"
+  - "C6"
+  - "D1"
+  - "D2"
+  - "D3"
+  - "D4"
+  - "D5"
+  - "D6"
