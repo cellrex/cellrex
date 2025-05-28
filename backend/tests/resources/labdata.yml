@@ -60,13 +60,28 @@ KEYWORDS:
   - "bicuculline"
 
 LABS:
-  - "Lab1"
+- "Stanford Neuroscience Lab"
+- "Huang Molecular Imaging Group"
+- "Meyer-Robertson Cell Biology Lab"
+- "BioSynth Research Institute"
+- "Quantum Systems Laboratory"
+- "García-Chen Immunology Center"
+- "Advanced Materials Research Lab"
+- "Cellular Engineering Collective"
+- "Transcriptomics & Genomics Unit"
+- "Neural Dynamics Research Group"
 
 EXPERIMENTERS:
-  - "MRec"
-  - "MIss"
-  - "JDoe"
-  - "TUser"
+- "KLee"
+- "PSmith"
+- "CWong"
+- "RGarcia"
+- "AMuller"
+- "SZhang"
+- "LPatel"
+- "BKim"
+- "DGreen"
+- "JScott"
 
 SPECIES:
   - "Fish"
