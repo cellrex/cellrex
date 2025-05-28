@@ -19,7 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def generate_dummy_upload_files(
+def generate_dummy_files(
     output_folder="share/upload", num_files=30, min_size_kb=1, max_size_kb=500
 ) -> list[str]:
     """
@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    files = generate_dummy_upload_files(
+    files = generate_dummy_files(
         output_folder=args.folder,
         num_files=args.files,
         min_size_kb=args.min_size,

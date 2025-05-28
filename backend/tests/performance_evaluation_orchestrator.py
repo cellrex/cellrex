@@ -2,6 +2,7 @@
 """
 Incremental data generation and ingestion with performance testing.
 """
+# pylint: disable=missing-function-docstring,import-outside-toplevel
 
 import argparse
 import json
@@ -12,11 +13,10 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import requests
+from data_generation_utils import generate_dummy_files
 from metadata_generation_utils import generate_metadata_for_files
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-
-from backend.tests.data_generation_utils import generate_dummy_upload_files
 
 # Configure logging to both console and file
 LOG_FILE = "./performance_test.log"
@@ -153,6 +153,7 @@ def create_db_entry(metadata: dict, session: requests.Session) -> bool:
                 "filepath": metadata["filepath"],
                 "filesize": metadata["filesize"],
                 "filetype": metadata["filetype"],
+                "filehash": metadata["filehash"],
             },
             timeout=10,
         )
@@ -231,7 +232,7 @@ def generate_and_ingest_incrementally(
         stage_start_time = time.time()
         # Step 1: Generate dummy files
         generation_start = time.time()
-        generated_files = generate_dummy_upload_files(
+        generated_files = generate_dummy_files(
             output_folder=str(upload_path),
             num_files=files_to_generate,
             min_size_kb=min_size_kb,
@@ -293,7 +294,7 @@ def main():
         type=int,
         nargs="+",
         default=DEFAULT_STAGES,
-        help="File count stages for incremental testing (e.g., 10 100 1000)",
+        help=f"File count stages for incremental testing (default: {DEFAULT_STAGES})",
     )
     parser.add_argument(
         "--min-size-kb", type=int, default=10, help="Minimum file size in KB"

@@ -2,10 +2,13 @@
 """
 Generate metadata for test files.
 """
+# pylint: disable=missing-function-docstring,import-outside-toplevel
 
+import hashlib
 import logging
 import pathlib
 import random
+import secrets
 import sys
 from datetime import date, datetime, time, timedelta
 from json import JSONEncoder
@@ -14,10 +17,16 @@ from typing import Any, Dict, List
 import numpy as np
 import requests
 import yaml
+from data_generation_utils import generate_dummy_files
+from pydantic import ValidationError
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from backend.tests.data_generation_utils import generate_dummy_upload_files
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
+from model.biofile import (  # pylint: disable=wrong-import-position,import-error
+    Biofile,
+    Filecontext,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -196,6 +205,8 @@ def generate_metadata_for_files(
         experiment_date = datetime.now() - timedelta(days=random.randint(0, 30))
         creation_date = experiment_date + timedelta(days=random.randint(1, 29))
         filesize = file_path.stat().st_size
+        # calculate dummy hash for file
+        filehash = hashlib.sha256(secrets.token_bytes(32)).hexdigest()
 
         # Generate metadata
         file_context = {
@@ -249,8 +260,22 @@ def generate_metadata_for_files(
             "filepath": str(file_path),
             "filesize": filesize,
             "filetype": file_path.suffix[1:],
+            "filehash": filehash,
         }
-        metadata_list.append(metadata)
+        try:
+            # Validate filecontext and the full biofile
+            filecontext_obj = Filecontext(**file_context)
+            Biofile(
+                filecontext=filecontext_obj,
+                filepath=metadata["filepath"],
+                filesize=metadata["filesize"],
+                filehash=metadata["filehash"],
+                filetype=metadata["filetype"],
+            )
+            metadata_list.append(metadata)
+        except ValidationError as e:
+            logger.error("Pydantic validation failed for file %s: %s", file_path, e)
+            continue
     logger.info("Generated metadata for %d files", len(metadata_list))
     return metadata_list
 
@@ -291,7 +316,7 @@ def main():
         # Generate files if requested
         if args.generate_files:
             logger.info("Generating %d dummy files in %s", args.files, args.upload_dir)
-            generate_dummy_upload_files(
+            generate_dummy_files(
                 output_folder=args.upload_dir,
                 num_files=args.files,
                 min_size_kb=10000,
