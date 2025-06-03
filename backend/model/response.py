@@ -62,7 +62,7 @@ class DatabaseErrorResponse(BaseModel):
 
 class PaginationParams(BaseModel):
     offset: int = Field(0, ge=0)
-    limit: int = Field(10, gt=0, le=100)
+    limit: int = Field(10, gt=0, le=100000)
 
 
 class PaginatedResponse(BaseModel):
