@@ -8,8 +8,11 @@ import argparse
 import json
 import logging
 import pathlib
+import shutil
+import tempfile
 import time
-from datetime import datetime
+from contextlib import contextmanager
+from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
 import requests
@@ -18,13 +21,10 @@ from metadata_generation_utils import generate_metadata_for_files
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# Configure logging to both console and file
-LOG_FILE = "./performance_test.log"
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(), logging.FileHandler(LOG_FILE, mode="a")],
+    handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -113,7 +113,7 @@ class PerformanceTracker:
         )
 
     def _save_results(self) -> None:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
         result_file = self.output_dir / f"performance_results_{timestamp}.json"
         with open(result_file, "w", encoding="utf-8") as f:
             json.dump(
@@ -129,6 +129,102 @@ class PerformanceTracker:
                 indent=2,
             )
         logger.info("Results saved to %s", result_file)
+
+
+class APIPerformanceTracker:
+    def __init__(self, base_url, log_file="api_performance.json"):
+        self.base_url = base_url
+        self.log_file = log_file
+        self.results = []
+        self.stage_result = None
+        self.stage_results = []
+
+        # self.locust_env = Environment(user_classes=[BioUser], events=events)
+        # self.locust_runner = self.locust_env.create_local_runner()
+
+    def reset_stage_results(self):
+        """Reset the stage results for a new test run."""
+        self.stage_results = []
+
+    @contextmanager
+    def track_request(self, endpoint, stage, operation_type="query"):
+        start_time = time.perf_counter()
+        timestamp = datetime.now().isoformat()
+
+        # Create a context object to store data
+        context = {"response_data": None, "response_size": 0}
+
+        success = None
+        error = None
+        try:
+            yield context  # Pass context object to the with block
+            success = True
+            error = None
+        except Exception as e:
+            success = False
+            error = str(e)
+            raise
+        finally:
+            elapsed = time.perf_counter() - start_time
+
+            self.stage_result = {
+                "timestamp": timestamp,
+                "stage": stage,
+                "operation_type": operation_type,
+                "endpoint": endpoint,
+                "response_time_seconds": round(elapsed, 4),
+                "response_length": context["response_length"],
+                "success": success,
+                "error": error,
+            }
+
+            self.stage_results.append(self.stage_result)
+            self.results.append(self.stage_result)
+
+    def query_all_files(self, stage, params: Optional[Dict[str, Any]] = None):
+        url = f"{self.base_url}/biofiles/all"
+
+        with self.track_request("biofiles/all", stage) as ctx:
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+
+            # Analyze response data
+            ctx["response_length"] = len(data["items"])
+
+        return data
+
+    def query_file_by_id(self, file_id: int, stage: str):
+        url = f"{self.base_url}/biofiles/id/{file_id}"
+
+        with self.track_request(f"biofiles/id/{file_id}", stage) as ctx:
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+
+            # Analyze response data
+            ctx["response_length"] = 1
+
+        return data
+
+    def query_file_by_search(self, stage: str, params: Optional[Dict[str, Any]] = None):
+        url = f"{self.base_url}/biofiles/search"
+
+        query = {
+            "species": ["Human"],
+            "origin": ["iPSC"],
+            "pharmacology": ["Bicuculline"],
+        }
+
+        with self.track_request("biofiles/search", stage) as ctx:
+            response = requests.post(url, json=query, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+
+            # Analyze response data
+            ctx["response_length"] = len(data["items"])
+
+        return data
 
 
 # --- API/DB helpers ---
@@ -162,6 +258,34 @@ def create_db_entry(metadata: dict, session: requests.Session) -> bool:
     except requests.RequestException as e:
         logger.error("Failed to create DB entry: %s", e)
         return False
+
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, (date, datetime)):
+            return o.isoformat()
+        if isinstance(o, time):
+            return o.isoformat()
+
+
+def get_filepath_from_experiment_data(
+    experiment_data: dict, filename, session: requests.Session
+) -> pathlib.Path:
+    response = session.post(
+        url=f"{API_BASE_URL}/biofiles/filepath",
+        json={
+            "experiment_data": json.loads(
+                json.dumps(experiment_data, cls=DateTimeEncoder)
+            )
+        },
+        timeout=10,
+    )
+
+    experiment_path = pathlib.Path(response.json()["data"]["experiment_path"])
+
+    complete_filepath: pathlib.Path = pathlib.Path("data") / experiment_path / filename
+
+    return complete_filepath
 
 
 def move_file_api(
@@ -207,15 +331,12 @@ def generate_and_ingest_incrementally(
         min_size_kb: Minimum file size in KB
         max_size_kb: Maximum file size in KB
     """
-    # Initialize performance tracker
-    tracker = PerformanceTracker()
-
-    # Ensure stages are in ascending order
     stages = sorted(stages)
     upload_path = pathlib.Path(output_dir)
     upload_path.mkdir(parents=True, exist_ok=True)
     prev_stage = 0
     tracker = PerformanceTracker()
+    api_tracker = APIPerformanceTracker(API_BASE_URL)
     session = tracker.session
     for stage in stages:
         files_to_generate = stage - prev_stage
@@ -230,46 +351,83 @@ def generate_and_ingest_incrementally(
             "Starting stage %s: Generating %s new files", stage, files_to_generate
         )
         stage_start_time = time.time()
-        # Step 1: Generate dummy files
-        generation_start = time.time()
-        generated_files = generate_dummy_files(
-            output_folder=str(upload_path),
-            num_files=files_to_generate,
-            min_size_kb=min_size_kb,
-            max_size_kb=max_size_kb,
-        )
-        generation_time = time.time() - generation_start
-        # Step 2: Generate metadata for these files
-        filepaths = [upload_path / fname for fname in generated_files]
-        metadata_list = generate_metadata_for_files(config, filepaths)
-        # Step 3: Create DB entries and move files via API
-        processing_start = time.time()
-        successful = 0
-        for meta, fname in zip(metadata_list, generated_files):
-            db_ok = create_db_entry(meta, session)
-            move_ok = move_file_api(
-                filename=fname,
-                srcpath=str(upload_path),
-                dstpath=str(upload_path),  # Adjust as needed for your workflow
-                filecontext=meta["filecontext"],
-                session=session,
+        try:
+            # Step 1: Generate dummy files in a temporary directory
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                tmp_path = pathlib.Path(tmpdirname)
+                generation_start = time.time()
+                generated_files = generate_dummy_files(
+                    output_folder=str(tmp_path),
+                    num_files=files_to_generate,
+                    min_size_kb=min_size_kb,
+                    max_size_kb=max_size_kb,
+                )
+                generation_time = time.time() - generation_start
+                # Step 2: Copy files from temp to upload folder
+                copied_files = []
+                for fname in generated_files:
+                    src = tmp_path / fname
+                    dst = upload_path / fname
+                    shutil.copy2(src, dst)
+                    copied_files.append(fname)
+            # Step 3: Generate metadata for these files (now in upload_path)
+            filepaths = [upload_path / fname for fname in copied_files]
+            metadata_list = generate_metadata_for_files(config, filepaths)
+            # Step 4: Create DB entries and move files via API
+            processing_start = time.time()
+            successful = 0
+            for meta, fname in zip(metadata_list, copied_files):
+                db_ok = create_db_entry(meta, session)
+                move_ok = move_file_api(
+                    filename=fname,
+                    srcpath="upload",
+                    dstpath=str(
+                        get_filepath_from_experiment_data(
+                            meta["filecontext"], fname, session
+                        ).parent
+                    ),
+                    filecontext=meta["filecontext"],
+                    session=session,
+                )
+                if db_ok and move_ok:
+                    successful += 1
+            processing_time = time.time() - processing_start
+            success_rate = (
+                successful / files_to_generate if files_to_generate > 0 else 0
             )
-            if db_ok and move_ok:
-                successful += 1
-        processing_time = time.time() - processing_start
-        success_rate = successful / files_to_generate if files_to_generate > 0 else 0
-        tracker.record_stage(
-            stage_name=f"files_{stage}",
-            files_generated=files_to_generate,
-            files_processed=files_to_generate,
-            generation_time=generation_time,
-            processing_time=processing_time,
-            success_rate=success_rate,
-            additional_metrics={
-                "stage_total_time": time.time() - stage_start_time,
-            },
-        )
-        prev_stage = stage
+            # measure API response times
+            try:
+                _ = api_tracker.query_all_files(
+                    f"files_{stage}", params={"limit": 100000, "offset": 0}
+                )
+                _ = api_tracker.query_file_by_id(
+                    file_id=stage - 1, stage=f"files_{stage}"
+                )
+                _ = api_tracker.query_file_by_search(
+                    f"files_{stage}",
+                    params={
+                        "limit": 1000,
+                        "offset": 0,
+                    },
+                )
+            except Exception as e:
+                print(f"API failed at stage {stage}: {e}")
+
+            tracker.record_stage(
+                stage_name=f"files_{stage}",
+                files_generated=files_to_generate,
+                files_processed=files_to_generate,
+                generation_time=generation_time,
+                processing_time=processing_time,
+                success_rate=success_rate,
+                additional_metrics={
+                    "stage_total_time": time.time() - stage_start_time,
+                    "api_response_times": api_tracker.stage_results,
+                },
+            )
+        finally:
+            api_tracker.reset_stage_results()
+            prev_stage = stage
     logger.info("=== Incremental Generation and Ingestion Complete ===")
 
 
