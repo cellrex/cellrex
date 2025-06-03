@@ -134,7 +134,7 @@ class FileWatcher(FileSystemEventHandler):
 
         hash_value = sha256_hash.hexdigest()
         duration = time.time() - start_time
-        logger.debug("Hash calculation completed in %.2fs: %s", duration, filepath)
+        logger.info("Hash calculation completed in %.2fs: %s", duration, filepath)
 
         result = {
             "filename": key,
@@ -185,7 +185,9 @@ class FileWatcher(FileSystemEventHandler):
                             )
                             time.sleep(delay)
                         else:
-                            logger.error("Error processing file %s: %s", file_path, e)
+                            logger.error(
+                                "Hashing-Error processing file %s: %s", file_path, e
+                            )
                             return None
 
             hash_value = sha256_hash.hexdigest()
@@ -416,6 +418,7 @@ async def list_files(filepath: str):
 async def move_file(file_move: FileMove = Body(...)):
     try:
         file_move.dstpath.mkdir(parents=True, exist_ok=True)
+        # TODO: Check if dstpath is the right path (parent) and not the path to the file itself
 
         with open(
             file_move.srcpath / file_move.jsonfilename, "w", encoding="utf-8"
@@ -436,7 +439,7 @@ async def move_file(file_move: FileMove = Body(...)):
         logger.info("Moved json from %s to %s", file_move.srcpath, file_move.dstpath)
 
     except Exception as e:
-        print(f"Error moving file: {e}")
+        logger.error(f"Error moving file: {e}")
 
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
