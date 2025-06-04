@@ -16,6 +16,7 @@ from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
 import requests
+from tqdm import tqdm
 from data_generation_utils import generate_dummy_files
 from metadata_generation_utils import generate_metadata_for_files
 from requests.adapters import HTTPAdapter
@@ -376,7 +377,14 @@ def generate_and_ingest_incrementally(
             # Step 4: Create DB entries and move files via API
             processing_start = time.time()
             successful = 0
-            for meta, fname in zip(metadata_list, copied_files):
+
+            time.sleep(20)
+            # use tqdm for progress bar
+            for meta, fname in tqdm(
+                zip(metadata_list, copied_files),
+                total=len(copied_files),
+                desc=f"Ingesting files for stage {stage}",
+            ):
                 db_ok = create_db_entry(meta, session)
                 move_ok = move_file_api(
                     filename=fname,

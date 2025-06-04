@@ -10,6 +10,7 @@ import string
 import time
 from datetime import datetime
 from pathlib import Path
+from tqdm import tqdm
 
 logging.basicConfig(
     level=logging.INFO,
@@ -44,12 +45,9 @@ def generate_dummy_files(
     # File extensions to use
     extensions = [".dat", ".txt", ".csv", ".xml", ".bin", ".d3d"]
 
-    # Track progress for large file counts
-    report_interval = max(1, min(1000, num_files // 10))
-
     logger.info("Generating %d files in '%s'...", num_files, output_folder)
 
-    for i in range(num_files):
+    for i in tqdm(range(num_files), desc="Generating files", unit="file"):
         # Generate a unique filename using timestamp and random characters
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         random_chars = "".join(
@@ -78,18 +76,6 @@ def generate_dummy_files(
                 remaining -= write_size
 
         generated_files.append(filename)
-
-        # Progress reporting for large file counts
-        if (i + 1) % report_interval == 0 or i + 1 == num_files:
-            elapsed = time.time() - start_time
-            files_per_second = (i + 1) / elapsed if elapsed > 0 else 0
-            logger.info(
-                "Progress: %d/%d files created (%.1f%%) - Rate: %.1f files/sec",
-                i + 1,
-                num_files,
-                (i + 1) / num_files * 100,
-                files_per_second,
-            )
 
     total_time = time.time() - start_time
     avg_time_per_file = total_time / num_files if num_files > 0 else 0

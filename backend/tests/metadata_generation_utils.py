@@ -21,6 +21,7 @@ from data_generation_utils import generate_dummy_files
 from pydantic import ValidationError
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from tqdm import tqdm
 
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 from model.biofile import (  # pylint: disable=wrong-import-position,import-error
@@ -101,7 +102,7 @@ def generate_metadata_for_files(
         List of generated metadata dictionaries
     """
     metadata_list = []
-    for file_path in filepaths:
+    for file_path in tqdm(filepaths, desc="Generating metadata", unit="file"):
         # Randomly select parameters
         species = random.choice(config["SPECIES"])
         origin = random.choice(config["ORIGIN"])
