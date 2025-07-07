@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from inspect import signature
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from model.biofile import Biofile
 from model.search import SearchModel
@@ -30,7 +30,9 @@ class DatabaseInterface(ABC):
         pass
 
     @abstractmethod
-    async def retrieve_biofiles(self) -> List[Dict] | None:
+    async def retrieve_biofiles(
+        self, offset: int, limit: int
+    ) -> Tuple[List[Dict], int] | None:
         """Retrieve all biofiles present in the database"""
         pass
 
@@ -56,8 +58,8 @@ class DatabaseInterface(ABC):
 
     @abstractmethod
     async def retrieve_biofiles_by_search(
-        self, search: SearchModel
-    ) -> List[Dict] | None:
+        self, search: SearchModel, offset: int, limit: int
+    ) -> Tuple[List[Dict], int]:
         """Retrieve biofiles with a matching search query"""
         pass
 

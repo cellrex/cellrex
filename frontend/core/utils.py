@@ -1,19 +1,19 @@
 import json
 import time
+import urllib.parse
+from typing import Dict, Optional
 
 import requests
 import streamlit as st
 from core.utils_json import DateTimeEncoder
-from typing import Optional
-
 from core.utils_yml import parse_labdata
 
-
-BASE_URL = "http://cellrex-backend:8000"
+BASE_URL_STATIC = "http://cellrex-backend:8000"
+BASE_URL_API = "http://cellrex-backend:8000/v1"
 
 
 def read_protocol_file(protocol_file):
-    url = f"{BASE_URL}/{protocol_file}"
+    url = f"{BASE_URL_API}/{protocol_file}"
 
     response = requests.get(url)
 
@@ -30,27 +30,45 @@ def read_protocol_file(protocol_file):
 
 
 def get_request(
-    route: str, endpoint: str, parameter: Optional[str] = None, timeout: int = 10
+    route: str,
+    *endpoint: str,
+    parameter: Optional[Dict[str, str]] = None,
+    timeout: int = 10,
 ) -> dict:
-    url = f"{BASE_URL}/{route}/{endpoint}"
-    if parameter:
-        url += f"/{parameter}"
+    endpoint = [str(ep) for ep in endpoint]
+
+    url = f"{BASE_URL_API}/{route}/{'/'.join(endpoint)}"
+    if parameter is not None:
+        # Use urlencode to convert the dictionary into a query string
+        query_string = urllib.parse.urlencode(parameter)
+        url += f"?{query_string}"
     response = requests.get(url, timeout=timeout)
     return response
 
 
-def post_request(route: str, endpoint: str, data: dict, timeout: int = 10) -> dict:
-    response = requests.post(
-        f"{BASE_URL}/{route}/{endpoint}",
-        json=data,
-        timeout=timeout,
-    )
+def post_request(
+    route: str,
+    *endpoint: str,
+    parameter: Optional[Dict[str, str]] = None,
+    data: dict,
+    timeout: int = 10,
+) -> dict:
+    endpoint = [str(ep) for ep in endpoint]
+
+    url = f"{BASE_URL_API}/{route}/{'/'.join(endpoint)}"
+
+    if parameter is not None:
+        # Use urlencode to convert the dictionary into a query string
+        query_string = urllib.parse.urlencode(parameter)
+        url += f"?{query_string}"
+
+    response = requests.post(url, json=data, timeout=timeout)
     return response
 
 
 def get_labdata():
-    url = f"{BASE_URL}/config/labdata.yml"
-    dummy_url = f"{BASE_URL}/static/labdata_dummy.yml"
+    url = f"{BASE_URL_STATIC}/config/labdata.yml"
+    dummy_url = f"{BASE_URL_STATIC}/static/labdata_dummy.yml"
 
     response = requests.get(url)
 
@@ -90,9 +108,7 @@ def check_existence_of_filepath(path):
 def get_hash_calc(filename: str):
     hash_info = None
     while hash_info is None:
-        response = get_request(
-            route="filemanagement", endpoint="hash", parameter=filename
-        )
+        response = get_request("filemanagement", "hash", filename)
 
         match response.status_code:
             case 200:
@@ -114,8 +130,7 @@ def check_backend():
 
 def create_db_entry(path_to_filename, experiment_data, file_size, file_hash):
     response = post_request(
-        route="biofiles",
-        endpoint="",
+        "biofiles",
         data={
             "filecontext": json.loads(
                 json.dumps(experiment_data, cls=DateTimeEncoder),
