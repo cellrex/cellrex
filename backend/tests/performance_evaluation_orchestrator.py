@@ -219,11 +219,13 @@ class APIPerformanceTracker:
 
         with self.track_request("biofiles/search", stage) as ctx:
             response = requests.post(url, json=query, params=params, timeout=10)
-            response.raise_for_status()
             data = response.json()
 
-            # Analyze response data
-            ctx["response_length"] = len(data["items"])
+            if response.status_code == 200:
+                # Analyze response data
+                ctx["response_length"] = len(data["items"])
+            else:
+                ctx["response_length"] = 0
 
         return data
 
@@ -378,7 +380,7 @@ def generate_and_ingest_incrementally(
             processing_start = time.time()
             successful = 0
 
-            time.sleep(20)
+            time.sleep(30)
             # use tqdm for progress bar
             for meta, fname in tqdm(
                 zip(metadata_list, copied_files),
