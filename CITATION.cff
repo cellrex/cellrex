@@ -1,0 +1,51 @@
+authors:
+  - family-names: Hölter
+    given-names: Jan
+    orcid: "https://orcid.org/0009-0004-2677-938X"
+  - family-names: Rickmeyer
+    given-names: Tim
+    orcid: "https://orcid.org/0000-0001-8310-9017"
+  - family-names: Thielemann
+    given-names: Christiane
+    orcid: "https://orcid.org/0000-0002-9814-4744"
+cff-version: 1.2.0
+message: If you use this software, please cite the associated SoftwareX article.
+title: CellRex
+repository-code: "https://github.com/cellrex/cellrex"
+license: Apache-2.0
+date-released: "2025-09-01"
+keywords:
+  - Research data management (RDM)
+  - Laboratory information management system (LIMS)
+  - Biological cell
+  - Microscopic images
+  - Electrophysiological recordings
+  - Software-as-a-service (SaaS)
+identifiers:
+  - type: doi
+    value: 10.1016/j.softx.2025.102284
+    description: DOI of the associated article.
+  - type: doi
+    value: 10.5281/zenodo.14904935
+    description: This is the collection of archived snapshots of all versions of CellRex.    
+    
+preferred-citation:
+  authors:
+    - family-names: Hölter
+      given-names: Jan
+      orcid: "https://orcid.org/0009-0004-2677-938X"
+    - family-names: Rickmeyer
+      given-names: Tim
+      orcid: "https://orcid.org/0000-0001-8310-9017"
+    - family-names: Thielemann
+      given-names: Christiane
+      orcid: "https://orcid.org/0000-0002-9814-4744"
+  title: "CellRex: Software platform for managing biological cell data"
+  type: article
+  journal: "SoftwareX"
+  year: 2025
+  volume: 31
+  identifiers:
+  - type: doi
+    value: 10.1016/j.softx.2025.102284
+    description: DOI of the article.
