@@ -45,7 +45,15 @@ preferred-citation:
   journal: "SoftwareX"
   year: 2025
   volume: 31
-  identifiers:
-  - type: doi
-    value: 10.1016/j.softx.2025.102284
-    description: DOI of the article.
+  pages: "102284"
+  issn: "2352-7110"
+  doi: 10.1016/j.softx.2025.102284
+  url: "https://www.sciencedirect.com/science/article/pii/S2352711025002511"
+  keywords:
+    - Research data management (RDM)
+    - Laboratory information management system (LIMS)
+    - Biological cell
+    - Microscopic images
+    - Electrophysiological recordings
+    - Software-as-a-service (SaaS)
+  abstract: "This work introduces the software platform CellRex, a research data management system for laboratories capable of storing, searching, and enriching data with biological metadata. CellRex addresses data management challenges by storing data in an ontology-based directory structure within the filesystem, with metadata saved as JSON files and in a document-oriented SQLite database. The framework, deployed as container services in a software-as-a-service model, features a web-based GUI and API for user interaction and machine-readable access, providing functionalities such as duplicate detection, experiment grouping, and templating. CellRex improves research efficiency and facilitates data reuse, providing a targeted solution for laboratories focused on cell analysis research."
